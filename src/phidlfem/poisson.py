@@ -43,8 +43,6 @@ def make_mesh(D):
     """
     # info on meshing:
     # https://fenicsproject.discourse.group/t/using-facet-tags-to-define-boundary-conditions-gmsh-fenicsx-dolfinx/9408/3
-    if len(D.get_ports()) != 2:
-        raise ValueError("currently only support 2-port devices")
     
     # make the mesh
     gmsh.initialize()
