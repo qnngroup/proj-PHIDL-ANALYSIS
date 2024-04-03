@@ -37,7 +37,9 @@ def make_mesh(D):
         D (Device): phidl device
 
     Returns:
-
+        domain (Mesh): Dolfinx mesh object
+        facet_markers (MeshTags): Dolfinx mesh tags object
+        n_dbc (Int): number of ports
     """
     # info on meshing:
     # https://fenicsproject.discourse.group/t/using-facet-tags-to-define-boundary-conditions-gmsh-fenicsx-dolfinx/9408/3
@@ -92,26 +94,36 @@ def make_mesh(D):
     model.add_physical_group(2, [surf], 1)
     for b,boundary in enumerate(dirichlet_boundaries):
         model.add_physical_group(1, boundary, b)
-    print(f'dirichlet_boundaries = {dirichlet_boundaries}')
     
-    #model.add_physical_group(1, neumann_boundaries, NBC_ID)
     gmsh.option.set_number("Mesh.CharacteristicLengthMin", 0.01)
     gmsh.option.set_number("Mesh.CharacteristicLengthMax", 1)
     model.mesh.generate(2)
     
     gmsh_model_rank = 0
-    domain, cell_markers, facet_markers = gmshio.model_to_mesh(model, MPI.COMM_WORLD, gmsh_model_rank, gdim=2)
-    return domain, cell_markers, facet_markers, dirichlet_boundaries
+    domain, _, facet_markers = gmshio.model_to_mesh(model, MPI.COMM_WORLD, gmsh_model_rank, gdim=2)
+    return domain, facet_markers, len(dirichlet_boundaries)
 
 def solve_poisson(domain,
-                  cell_markers,
                   facet_markers,
-                  dirichlet_boundaries,
+                  n_dbc,
                   visualize=False):
+    """
+    Solve poisson equation on the specified mesh
+
+    Parameters:
+        domain (Mesh): domain over which to solve ODE
+        facet_markers (MeshTags): list of 1D boundaries
+        n_dbc (Int): number of dirichlet boundary conditions
+        visualize (bool): if True, use pyvista to visualize solutions
+
+    Returns:
+        J (Function): current density
+        bb_tree (BoundingBoxTree)
+    """
     V = fem.FunctionSpace(domain, ("Lagrange", 1))
     
     bcs = []
-    for b in range(len(dirichlet_boundaries)):
+    for b in range(n_dbc):
         dbc_entities = facet_markers.indices[facet_markers.values == b]
         dbc_dofs = fem.locate_dofs_topological(V=V, entity_dim=1, entities=dbc_entities)
         bcs.append(fem.dirichletbc(value=ScalarType(b), dofs=dbc_dofs, V=V))
@@ -172,10 +184,20 @@ def solve_poisson(domain,
     return J, bb_tree
 
 def get_squares(D):
-    domain, cell_markers, facet_markers, dirichlet_boundaries = make_mesh(D)
-    J, bb_tree = solve_poisson(domain, cell_markers, facet_markers, dirichlet_boundaries, visualize=False)
+    """
+    Get number of squares in a two-terminal phidl device
+
+    Parameters:
+        D (Device): phidl Device
+
+    Returns:
+        sq (List[Float]): number of squares to ground from each port
+    """
+    domain, facet_markers, n_dbc = make_mesh(D)
+    J, bb_tree = solve_poisson(domain, facet_markers, n_dbc, visualize=False)
     # get the current flow into/out of each port
-    currents = []
+    sq = np.zeros(len(D.get_ports()))
+    currents = np.zeros(len(D.get_ports()))
     for p, port in enumerate(D.get_ports()):
         # port tangent
         tangent = port.endpoints[1] - port.endpoints[0]
@@ -206,14 +228,21 @@ def get_squares(D):
         dy = np.diff(points_on_proc[:,1])
         # normal vector is dn = [-dy; dx]
         I = np.trapz(-dy*J_values[1:,0] + dx*J_values[1:,1])
-        currents.append(I)
+        currents[p] = I
+        sq[p] = abs(p/I)
     
     if abs(np.sum(currents)) > 1e-2:
         print("WARNING, DEVICE CURRENTS DON'T SUM TO ZERO, SQUARE COUNT MAY BE INNACURATE")
 
     gmsh.finalize()
-    return abs(1/currents[-1])
+    return np.abs(sq)
 
 def visualize_poisson(D):
-    domain, cell_markers, facet_markers, dirichlet_boundaries = make_mesh(D)
-    solve_poisson(domain, cell_markers, facet_markers, dirichlet_boundaries, visualize=True)
+    domain, facet_markers, n_dbc = make_mesh(D)
+    solve_poisson(domain, facet_markers, n_dbc, visualize=True)
+
+if __name__ == '__main__':
+    D = pg.optimal_step(start_width = 10, end_width = 20, anticrowding_factor = 1)
+    sq = get_squares(D)
+    print(f'squares = {sq}')
+    visualize_poisson(D)
