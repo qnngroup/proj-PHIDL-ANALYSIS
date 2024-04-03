@@ -217,10 +217,3 @@ def get_squares(D):
 def visualize_poisson(D):
     domain, cell_markers, facet_markers, dirichlet_boundaries = make_mesh(D)
     solve_poisson(domain, cell_markers, facet_markers, dirichlet_boundaries, visualize=True)
-
-if __name__ == "__main__":
-    #D = pg.optimal_step(start_width = 10, end_width = 20, anticrowding_factor = 1)
-    D = pg.flagpole(size=(10,30), stub_size=(4,40), shape='p', taper_type='straight')
-    sq = get_squares(D)
-    print(f'squares = {sq}')
-    visualize_poisson(D)
