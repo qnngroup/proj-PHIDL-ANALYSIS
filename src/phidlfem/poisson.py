@@ -29,12 +29,13 @@ import matplotlib.pyplot as plt
 # https://physics.stackexchange.com/questions/190355/calculating-the-resistance-of-a-3d-shape-between-two-points
 # https://physics.stackexchange.com/questions/467205/resistance-of-an-object-with-arbitrary-shape
 
-def make_mesh(D):
+def make_mesh(D, max_step):
     """
     Make a mesh from phidl device
 
     Parameters:
         D (Device): phidl device
+        max_step (Float): maximum step size in microns
 
     Returns:
         domain (Mesh): Dolfinx mesh object
@@ -93,8 +94,8 @@ def make_mesh(D):
     for b,boundary in enumerate(dirichlet_boundaries):
         model.add_physical_group(1, boundary, b)
     
-    gmsh.option.set_number("Mesh.CharacteristicLengthMin", 0.01)
-    gmsh.option.set_number("Mesh.CharacteristicLengthMax", 1)
+    gmsh.option.set_number("Mesh.CharacteristicLengthMin", max_step/10)
+    gmsh.option.set_number("Mesh.CharacteristicLengthMax", max_step)
     model.mesh.generate(2)
     
     gmsh_model_rank = 0
@@ -181,17 +182,18 @@ def solve_poisson(domain,
         plotter.show()
     return J, bb_tree
 
-def get_squares(D):
+def get_squares(D, max_step=0.5):
     """
     Get number of squares in a two-terminal phidl device
 
     Parameters:
         D (Device): phidl Device
+        max_step (Float): maximum step size for mesh refinement in microns
 
     Returns:
         sq (List[Float]): number of squares to ground from each port
     """
-    domain, facet_markers, n_dbc = make_mesh(D)
+    domain, facet_markers, n_dbc = make_mesh(D, max_step)
     J, bb_tree = solve_poisson(domain, facet_markers, n_dbc, visualize=False)
     # get the current flow into/out of each port
     sq = np.zeros(len(D.get_ports()))
@@ -235,12 +237,12 @@ def get_squares(D):
     gmsh.finalize()
     return np.abs(sq)
 
-def visualize_poisson(D):
-    domain, facet_markers, n_dbc = make_mesh(D)
+def visualize_poisson(D, max_step=0.5):
+    domain, facet_markers, n_dbc = make_mesh(D, max_step)
     solve_poisson(domain, facet_markers, n_dbc, visualize=True)
 
 if __name__ == '__main__':
     D = pg.optimal_step(start_width = 10, end_width = 20, anticrowding_factor = 1)
-    sq = get_squares(D)
+    sq = get_squares(D, 0.5)
     print(f'squares = {sq}')
-    visualize_poisson(D)
+    visualize_poisson(D, 0.5)
