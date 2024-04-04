@@ -57,7 +57,7 @@ def make_mesh(D, max_step):
     def closest_port(point, D):
         for p, port in enumerate(D.get_ports()):
             for endpoint in port.endpoints:
-                if np.sum((point - endpoint)**2) < 1e-6:
+                if np.sum((point - endpoint)**2) < max_step/10:
                     return p
         return -1
     N_points = len(D.get_polygons()[0])
