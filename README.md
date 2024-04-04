@@ -21,7 +21,7 @@ $ conda install -c conda-forge gmsh python-gmsh
 
 Install the `phidlfem` package
 ```
-$ pip install dist/phidlfem-0.0.1-py3-none-any.whl
+$ pip install dist/phidlfem-<version>-py3-none-any.whl
 ```
 
 # Usage
