@@ -1,0 +1,16 @@
+name: phidlfem
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - fenics-dolfinx
+  - mpich
+  - pyvista
+  - gmsh
+  - python-gmsh
+  - pip
+  - numpy
+  - scipy
+  - pip:
+    - phidl

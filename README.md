@@ -1,5 +1,6 @@
-# Toolkit for calculating number of squares from PHIDL geometry
-Solves laplace equation in 2D for calculating current flow through a conductor given a fixed applied voltage and known material conductivity
+# Toolkit for analyzing PHIDL geometry with FEniCS/dolfinx
+Solves laplace equation in 2D for calculating current flow through a conductor given a fixed applied voltage and known material conductivity.
+This gives the number of squares in the conductor
 
 # Installation
 First build the package
@@ -7,19 +8,13 @@ First build the package
 $ python3 -m build
 ```
 
-Next, install FEniCSx, following setup for [FEniCS/Dolfinx](https://github.com/FEniCS/dolfinx?tab=readme-ov-file#binary):
+Now install the required dependencies
 ```
-$ conda create -n <ENV_NAME> python=3.10
+$ conda create -n <ENV_NAME> -f environment.yml
 $ conda activate <ENV_NAME>
-$ conda install -c conda-forge fenics-dolfinx mpich pyvista
 ```
 
-Now install `gmsh` and python API
-```
-$ conda install -c conda-forge gmsh python-gmsh
-```
-
-Install the `phidlfem` package
+Finally install the `phidlfem` package
 ```
 $ pip install dist/phidlfem-<version>-py3-none-any.whl
 ```

@@ -4,18 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phidlfem"
-version = "0.1.2"
+version = "1.0.5"
 authors = [
   { name="Reed Foster", email="reedf@mit.edu" },
 ]
-description = "Solve poisson equation on phidl geometries using DBC at ports and NBC everywhere else"
+description = "Tools for analyzing phidl devices using FEniCS/dolfinx"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "phidl",
-  "numpy",
-  "matplotlib",
-  "scipy"
+  "numpy"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
