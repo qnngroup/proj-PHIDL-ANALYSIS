@@ -3,9 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.10
-  - fenics-dolfinx
-  - mpich
+  - python
+  - fenics-dolfinx=0.7.3
+  - mpich=4.2.0
   - pyvista
   - gmsh
   - python-gmsh
