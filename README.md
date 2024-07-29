@@ -10,7 +10,7 @@ $ python3 -m build
 
 Now create an environment with the required dependencies (see [FEniCS/dolfinx README](https://github.com/FEniCS/dolfinx) for installation guidelines if you prefer to use a different virtual environment manager):
 ```
-$ conda create -n <ENV_NAME> -f environment.yml
+$ conda env create -n <ENV_NAME> -f environment.yml
 $ conda activate <ENV_NAME>
 ```
 
