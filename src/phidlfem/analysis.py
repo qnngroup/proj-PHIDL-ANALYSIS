@@ -18,7 +18,7 @@ def get_squares(D, max_step=0.5):
     Returns:
         sq (List[Float]): number of squares to ground from each port
     """
-    D_hash = D.hash_geometry()
+    D_hash = hash(D.hash_geometry() + max_step)
     try:
         # load hashes and check for a match
         with open(".phidlfem_D_hashes.json", "r") as f:
