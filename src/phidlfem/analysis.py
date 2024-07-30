@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 from dolfinx import geometry
 
@@ -17,6 +18,16 @@ def get_squares(D, max_step=0.5):
     Returns:
         sq (List[Float]): number of squares to ground from each port
     """
+    D_hash = D.hash_geometry()
+    try:
+        # load hashes and check for a match
+        with open(".phidlfem_D_hashes.json", "r") as f:
+            hash_data = json.load(f)
+        if D_hash in hash_data:
+            return hash_data[D_hash]
+    except OSError:
+        hash_data = {}
+        pass
     domain, facet_markers, n_dbc = make_mesh_2D(D, max_step)
     J, bb_tree = solve_laplace(domain, facet_markers, n_dbc, visualize=False)
     # get the current flow into/out of each port
@@ -69,7 +80,9 @@ def get_squares(D, max_step=0.5):
         print(
             "WARNING, DEVICE CURRENTS DON'T SUM TO ZERO, SQUARE COUNT MAY BE INNACURATE"
         )
-
+    hash_data[D_hash] = [s for s in sq]
+    with open(".phidlfem_D_hashes.json", "w") as f:
+        json.dump(hash_data, f)
     return np.abs(sq)
 
 
